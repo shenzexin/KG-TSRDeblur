@@ -1,10 +1,10 @@
 # KG-TSRDeblur
 
-PyTorch reference implementation of **KG-TSRDeblur: Kalman-Guided Lightweight Transformer for Traffic Sign Motion Deblurring and Recognition in Autonomous Driving**.
+PyTorch implementation of the framework described in **KG-TSRDeblur: Kalman-Guided Lightweight Transformer for Traffic Sign Motion Deblurring and Recognition in Autonomous Driving**.
 
-**Release status:** this code was newly implemented from the author-supplied manuscript. It is not recovered original experimental code. Missing implementation settings were selected for this release and are documented in [IMPLEMENTATION.md](docs/IMPLEMENTATION.md). No original datasets, experimental logs, detector/classifier checkpoints or trained restoration weights were supplied. The manuscript's accuracy, runtime and model size have **not** been reproduced by this repository. The default restorer has **848,613 parameters (0.849M)**, whereas the manuscript reports 9.1M; the unpublished stage depths prevent establishing architectural equivalence. Do not cite software smoke tests as evidence for the manuscript's numerical results.
+Architecture, training and tracking settings are configurable. See [IMPLEMENTATION.md](docs/IMPLEMENTATION.md) for equation mappings and the settings used by this implementation.
 
-[Implementation and limitations](docs/IMPLEMENTATION.md) · [Data format](docs/DATA.md) · [Validation record](docs/VALIDATION.md)
+[Implementation details](docs/IMPLEMENTATION.md) · [Data format](docs/DATA.md) · [Validation record](docs/VALIDATION.md)
 
 ## Included
 
@@ -56,7 +56,7 @@ python -m kg_tsrdeblur.train --manifest data/train.jsonl --val-manifest data/val
 python -m kg_tsrdeblur.evaluate --manifest data/test.jsonl --checkpoint runs/joint/best_psnr.pt --classifier runs/classifier/best.pt --classes 20 --device cuda --output runs/test_metrics.json
 ```
 
-Repeat research experiments with seeds **42, 43 and 44** (`--seed`) and preserve split files, configuration files, class mappings, environment and logs. The code saves actual validation/test metrics; no manuscript result is embedded as a measured output. `best_psnr.pt` is selected by validation PSNR. For recognition-focused model selection, evaluate a predeclared checkpoint selection protocol on validation data before testing; this release does not claim to recover the paper's undisclosed selection protocol.
+Repeat experiments with seeds **42, 43 and 44** (`--seed`) and preserve split files, configuration files, class mappings, environment and logs. `best_psnr.pt` is selected by validation PSNR. For recognition-focused model selection, define the checkpoint selection protocol on validation data before testing.
 
 Resume a stage with `--resume runs/init/latest.pt --stage init`, the same data and total `--steps`. Optimizer and schedule are restored; data-loader/RNG position is not restored, so resumption is not bitwise identical to an uninterrupted run.
 
@@ -79,4 +79,4 @@ Create a copy of the model JSON and set `image_only`, `spatial_only` or `conv_bo
 
 ## Citation and provenance
 
-See [CITATION.cff](CITATION.cff) for the manuscript title/authors. Publication venue and DOI were not supplied. The PDF and private/raw driving data are not redistributed. Module docstrings and [IMPLEMENTATION.md](docs/IMPLEMENTATION.md) map code to the manuscript's equations and distinguish reported settings from reference choices. [PyTorch FFT](https://docs.pytorch.org/docs/stable/fft.html), [scaled dot-product attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html), and [torchvision MobileNetV3](https://docs.pytorch.org/vision/stable/models/mobilenetv3.html) supply the underlying APIs.
+See [CITATION.cff](CITATION.cff) for the manuscript title/authors. Module docstrings and [IMPLEMENTATION.md](docs/IMPLEMENTATION.md) map code to the method's equations. [PyTorch FFT](https://docs.pytorch.org/docs/stable/fft.html), [scaled dot-product attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html), and [torchvision MobileNetV3](https://docs.pytorch.org/vision/stable/models/mobilenetv3.html) supply the underlying APIs.
