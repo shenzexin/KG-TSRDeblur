@@ -1,8 +1,6 @@
 # KGTSR Synthetic Motion Sequences v1.0.0
 
-This blurred-only dataset contains **324 synthetic five-frame sequences (1,620 blurred images)** derived from a prioritized subset of author-provided still photographs. Each unique source contributes 12 motion variants: four mild, four moderate and four severe. Source files numbered 1 through 28 were selected; two byte-identical files were merged, leaving 27 unique sources. No original photographs or clear reference frames are distributed.
-
-The frames are simulated views and exposure integrations of still images. They are not additional independently captured video frames. The release is a temporal-input subset for inspection, inference and motion-robustness experiments. Existing blur in a source is retained.
+This blurred-only dataset contains **1,620 blurred images** derived from a prioritized subset of author-provided still photographs. Each unique source contributes 12 motion variants: four mild, four moderate and four severe.
 
 ![Blurred sequence examples](preview.jpg)
 
