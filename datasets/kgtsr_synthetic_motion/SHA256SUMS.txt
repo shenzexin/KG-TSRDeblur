@@ -1,0 +1,4 @@
+01683542900729ad8fcde6cacf94d1691214c32bc7ecad4d46be3dfcad48b71d  kgtsr-synthetic-motion-v1.0.0-images-001.zip
+5ec12edc26394f51b6f591ef7d621d7bd4176109a4b1041c8aa16acac075cf95  kgtsr-synthetic-motion-v1.0.0-images-002.zip
+37792f592ae445fbedeffb4960602f50351c5460f041bd09c06291ec94b9ee0d  kgtsr-synthetic-motion-v1.0.0-images-003.zip
+c75c9bfcec1d581c587195fc40a91e9fa028641ccd36f8c64c3b7bd739771cb5  kgtsr-synthetic-motion-v1.0.0-metadata.zip

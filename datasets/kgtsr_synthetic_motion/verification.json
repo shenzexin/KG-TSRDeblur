@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "sequences": 324,
+  "blurred_frames": 1620,
+  "unique_sources": 27,
+  "source_images_released": 0,
+  "sharp_frames_released": 0,
+  "source_group_overlap": 0,
+  "images_by_split": {
+    "train": 1380,
+    "test": 180,
+    "val": 60
+  },
+  "checked": [
+    "image decoding",
+    "dimensions",
+    "SHA-256",
+    "stripped EXIF",
+    "temporal ordering",
+    "distinct adjacent frames",
+    "source/group split isolation",
+    "source-file exclusion"
+  ]
+}

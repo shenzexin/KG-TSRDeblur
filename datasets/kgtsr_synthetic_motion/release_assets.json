@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "archive_root": "KGTSR-SyntheticMotion-v1.0.0",
+  "total_blurred_images": 1620,
+  "original_images_included": false,
+  "sharp_targets_included": false,
+  "assets": [
+    {
+      "name": "kgtsr-synthetic-motion-v1.0.0-images-001.zip",
+      "kind": "blurred_images",
+      "bytes": 66816640,
+      "sha256": "01683542900729ad8fcde6cacf94d1691214c32bc7ecad4d46be3dfcad48b71d",
+      "image_count": 645
+    },
+    {
+      "name": "kgtsr-synthetic-motion-v1.0.0-images-002.zip",
+      "kind": "blurred_images",
+      "bytes": 67166546,
+      "sha256": "5ec12edc26394f51b6f591ef7d621d7bd4176109a4b1041c8aa16acac075cf95",
+      "image_count": 495
+    },
+    {
+      "name": "kgtsr-synthetic-motion-v1.0.0-images-003.zip",
+      "kind": "blurred_images",
+      "bytes": 60403011,
+      "sha256": "37792f592ae445fbedeffb4960602f50351c5460f041bd09c06291ec94b9ee0d",
+      "image_count": 480
+    },
+    {
+      "name": "kgtsr-synthetic-motion-v1.0.0-metadata.zip",
+      "kind": "metadata",
+      "bytes": 689455,
+      "sha256": "c75c9bfcec1d581c587195fc40a91e9fa028641ccd36f8c64c3b7bd739771cb5",
+      "image_count": 0
+    }
+  ]
+}

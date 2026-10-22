@@ -1,0 +1,42 @@
+{
+  "name": "KGTSR Synthetic Motion Sequences",
+  "version": "1.0.0",
+  "synthetic": true,
+  "source_origin": "Author-provided still photographs; capture origin reported by the contributor",
+  "source_images_received": 28,
+  "unique_source_images_used": 27,
+  "source_images_released": 0,
+  "sharp_frames_released": 0,
+  "priority_source_count": 27,
+  "priority_variants": 12,
+  "total_sequences": 324,
+  "total_blurred_frames": 1620,
+  "frames_per_sequence": 5,
+  "fps": 30,
+  "maximum_long_side": 1024,
+  "jpeg_quality": 94,
+  "source_groups": 11,
+  "sequences_by_split": {
+    "train": 276,
+    "test": 36,
+    "val": 12
+  },
+  "frames_by_split": {
+    "train": 1380,
+    "test": 180,
+    "val": 60
+  },
+  "sequences_by_severity": {
+    "mild": 108,
+    "moderate": 108,
+    "severe": 108
+  },
+  "total_image_bytes": 194017371,
+  "duration_seconds": 56.6,
+  "task_annotations": "No traffic-sign boxes, identities, class labels, detector outputs, or clear targets are included",
+  "border_policy": "reflection padding",
+  "color_policy": "linear-light exposure integration; sRGB JPEG encoding; metadata stripped",
+  "source_blur_policy": "Existing source blur is retained; no source is asserted to be a sharp ground truth",
+  "split_policy": "conservative visual-scene and perceptual-content groups, seeded group allocation approximately 70/10/20",
+  "subset": "priority_source_stems_1_to_28"
+}

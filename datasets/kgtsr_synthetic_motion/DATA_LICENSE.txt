@@ -1,0 +1,11 @@
+Image-data rights
+
+Copyright is retained by the contributor of the source photographs.
+
+The repository's MIT software license does not apply to photographs or derived
+image data in this dataset. Public access is provided for inspection of the
+associated research materials. Contact the repository owner for permission
+for further reuse or redistribution.
+
+The public dataset contains derived motion-blurred images only. Source
+photographs and clear reference frames are not distributed.

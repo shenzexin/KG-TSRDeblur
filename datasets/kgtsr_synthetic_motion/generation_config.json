@@ -1,0 +1,9 @@
+{
+  "side": 1024,
+  "priority_variants": 12,
+  "seed": 42,
+  "jpeg_quality": 94,
+  "frame_count": 5,
+  "version": "1.0.0",
+  "priority_only": true
+}
