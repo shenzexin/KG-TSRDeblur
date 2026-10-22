@@ -1,6 +1,6 @@
 # KGTSR Synthetic Motion Sequences v1.0.0
 
-This blurred-only dataset contains **1,620 blurred images** derived from a prioritized subset of author-provided still photographs. Each unique source contributes 12 motion variants: four mild, four moderate and four severe.
+This blurred dataset contains **1,620 blurred images** derived from a prioritized subset of author-provided still photographs. Each unique source contributes 12 motion variants: four mild, four moderate and four severe.
 
 ![Blurred sequence examples](preview.jpg)
 
