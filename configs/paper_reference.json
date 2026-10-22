@@ -1,0 +1,13 @@
+{
+  "width": 32,
+  "encoder_depths": [2, 2],
+  "decoder_depths": [2, 2],
+  "transformer_blocks": 4,
+  "heads": 4,
+  "window": 8,
+  "motion_dim": 32,
+  "refinement_channels": 16,
+  "image_only": false,
+  "spatial_only": false,
+  "conv_bottleneck": false
+}
