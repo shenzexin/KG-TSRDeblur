@@ -17,7 +17,7 @@ Architecture, training and tracking settings are configurable. See [IMPLEMENTATI
 
 ## Dataset
 
-The [KGTSR Synthetic Motion Sequences](datasets/kgtsr_synthetic_motion/README.md) subset provides 324 five-frame sequences with 1,620 blurred images, derived from 27 unique author-provided photographs. Original stills and clear reference targets are excluded. Download archives, sequence manifests and verification instructions are available in the dataset directory and [dataset release](https://github.com/shenzexin/KG-TSRDeblur/releases/tag/dataset-v1.0.0).
+The [KGTSR Synthetic Motion Sequences](datasets/kgtsr_motion/README.md) subset provides 324 five-frame sequences with 1,620 blurred images, derived from 27 unique author-provided photographs. Original stills and clear reference targets are excluded. Download archives, sequence manifests and verification instructions are available in the dataset directory and [dataset release](https://github.com/shenzexin/KG-TSRDeblur/releases/tag/dataset-v1.0.0).
 
 ## Install
 

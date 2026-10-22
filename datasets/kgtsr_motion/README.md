@@ -11,8 +11,8 @@ Full images and metadata are provided as checksummed ZIP parts in [dataset-v1.0.
 From the repository root:
 
 ```bash
-python datasets/kgtsr_synthetic_motion/download.py --output data
-python datasets/kgtsr_synthetic_motion/reader.py --root data/KGTSR-SyntheticMotion-v1.0.0 --split test
+python datasets/kgtsr_motion/download.py --output data
+python datasets/kgtsr_motion/reader.py --root data/KGTSR-SyntheticMotion-v1.0.0 --split test
 ```
 
 The downloader verifies each archive's SHA-256 before extraction. Alternatively, download every ZIP part from the release page, verify against `SHA256SUMS.txt` and extract all parts into one parent directory.
