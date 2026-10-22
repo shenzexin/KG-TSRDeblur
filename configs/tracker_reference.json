@@ -1,14 +1,15 @@
 {
   "confirm_hits": 3,
   "max_missing": 5,
-  "iou_threshold": 0.1,
+  "iou_threshold": 0.01,
   "innovation_threshold": 2.371925,
-  "process_accel_std": 20.0,
+  "process_accel_std": 300.0,
   "measurement_std": 3.0,
   "initial_velocity_std": 100.0,
   "alpha": 1.0,
   "beta": 0.1,
   "gamma": 0.5,
   "min_confidence": 0.25,
-  "nms_iou": 0.5
+  "nms_iou": 0.5,
+  "initial_displacement_fraction": 1.0
 }

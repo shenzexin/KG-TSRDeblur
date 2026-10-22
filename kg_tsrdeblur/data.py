@@ -43,6 +43,12 @@ class ROIDataset(Dataset):
         self.records = [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
         if not self.records:
             raise ValueError("Manifest is empty")
+        required = {'sharp'} if sharp_only else {'sharp', 'blur'}
+        for index, row in enumerate(self.records, 1):
+            if not required <= row.keys() or any(not isinstance(row[k], str) or not row[k] for k in required):
+                raise ValueError(f'ROI manifest row {index} requires image paths: {sorted(required)}. '
+                                 'Blurred-only sequence manifests have no aligned sharp training targets; '
+                                 'use the sequence reader for those files.')
 
     def __len__(self):
         return len(self.records)

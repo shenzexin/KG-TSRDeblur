@@ -8,7 +8,7 @@ from .data import ROIDataset
 from .model import KGTSRDeblur
 from .classifier import load_classifier
 from .losses import restoration_loss, psnr_per_image, ssim_per_image
-from .utils import seed_everything, load_config, load_restorer, save_restorer, ensure_split_disjoint
+from .utils import seed_everything, load_config, load_restorer, save_restorer, ensure_split_disjoint, resume_best_psnr
 
 
 @torch.no_grad()
@@ -85,7 +85,7 @@ def main():
     (output/'arguments.json').write_text(json.dumps(vars(args), indent=2), encoding='utf-8')
     model.train()
     iterator = iter(loader)
-    best = -float('inf')
+    best = resume_best_psnr(ckpt, args.resume) if args.resume else -float('inf')
     for step in range(start+1, args.steps+1):
         try:
             batch = next(iterator)
@@ -109,10 +109,11 @@ def main():
             with (output/'validation.jsonl').open('a', encoding='utf-8') as f:
                 f.write(json.dumps(dict(step=step, **metrics))+'\n')
             print(json.dumps(dict(step=step, validation=metrics)), flush=True)
-            save_restorer(output/'latest.pt', model, opt, schedule, step, args)
-            if metrics['psnr'] > best:
+            improved = metrics['psnr'] > best
+            if improved:
                 best = metrics['psnr']
-                save_restorer(output/'best_psnr.pt', model, opt, schedule, step, args)
+                save_restorer(output/'best_psnr.pt', model, opt, schedule, step, args, best)
+            save_restorer(output/'latest.pt', model, opt, schedule, step, args, best)
 
 
 if __name__ == '__main__':

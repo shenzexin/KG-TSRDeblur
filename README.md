@@ -44,7 +44,7 @@ This generates geometric toy images, trains a two-class classifier for one epoch
 
 ## Train with real data
 
-Obtain data separately and prepare train/validation/test JSONL manifests as described in [DATA.md](docs/DATA.md). All examples below run from the repository root. The classifier and restoration commands reject shared sharp paths or sequence IDs across training and validation manifests.
+Obtain data separately and prepare train/validation/test JSONL manifests as described in [DATA.md](docs/DATA.md). All examples below run from the repository root. The classifier and restoration commands reject shared source/group identifiers, hashes, image paths or sequence IDs across training and validation manifests.
 
 ```bash
 # 1. Classifier on sharp training ROIs: 100 epochs, Adam, batch 64.
@@ -62,7 +62,7 @@ python -m kg_tsrdeblur.evaluate --manifest data/test.jsonl --checkpoint runs/joi
 
 Repeat experiments with seeds **42, 43 and 44** (`--seed`) and preserve split files, configuration files, class mappings, environment and logs. `best_psnr.pt` is selected by validation PSNR. For recognition-focused model selection, define the checkpoint selection protocol on validation data before testing.
 
-Resume a stage with `--resume runs/init/latest.pt --stage init`, the same data and total `--steps`. Optimizer and schedule are restored; data-loader/RNG position is not restored, so resumption is not bitwise identical to an uninterrupted run.
+Resume a stage with `--resume runs/init/latest.pt --stage init`, the same data and total `--steps`. Optimizer, schedule and best validation PSNR are restored; data-loader/RNG position is not restored, so resumption is not bitwise identical to an uninterrupted run.
 
 ## Inference
 
@@ -75,11 +75,11 @@ python -m kg_tsrdeblur.evaluate_pipeline --predictions runs/restored_video.jsonl
 python -m kg_tsrdeblur.benchmark --checkpoint runs/joint/best_psnr.pt --device cuda --output runs/roi_benchmark.json
 ```
 
-Video inference writes restored frames and per-frame candidate JSONL. Pixels outside expanded ROI crops remain unchanged before video encoding. At most eight ROIs are restored per frame. Pipeline metrics require both category correctness and IoU >= 0.5. Benchmark timings cover the restoration network only, and must not be reported as complete-pipeline FPS. FFT/attention MACs are not currently counted.
+Video inference writes restored frames and per-frame candidate JSONL. Pixels outside expanded ROI crops remain unchanged before video encoding. At most eight ROIs are restored per frame. Pipeline metrics require both category correctness and IoU >= 0.5. Benchmark timings cover the restoration network only, and must not be reported as complete-pipeline FPS. The operation counter includes convolution, linear layers and attention matrix products; FFT and elementwise work are excluded and reported separately. Add `--timing-report runs/pipeline_timing.json --timing-warmup 10` to video inference for synchronized pipeline timing excluding video I/O.
 
 ## Ablations
 
-Create a copy of the model JSON and set `image_only`, `spatial_only` or `conv_bottleneck` to `true`. For fixed reliability, use `--fixed-reliability` in video inference and a consistently modified training manifest assigning 1 to confirmed tracks only. For the no-recognition-loss variant, pass `--no-recognition-loss` in the joint stage. Retrain every architecture/loss variant with the same budget and seeds. Use `evaluate --blurred-baseline` for unprocessed ROIs. Ablation switches provide experimental controls; no ablation results are included.
+Create a copy of the model JSON and set `image_only`, `spatial_only` or `conv_bottleneck` to `true`. For fixed reliability, use `--fixed-reliability` in video inference and a consistently modified training manifest assigning 1 to confirmed tracks only. For the no-recognition-loss variant, pass `--no-recognition-loss` in the joint stage. Image-only and spatial-only variants remove inactive modules from parameter counts and execution. Retrain every architecture/loss variant with the same budget and seeds. Use `evaluate --blurred-baseline` for unprocessed ROIs. Ablation switches provide experimental controls; no ablation results are included.
 
 ## Citation and provenance
 

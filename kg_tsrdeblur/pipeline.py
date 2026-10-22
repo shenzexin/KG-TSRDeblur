@@ -1,6 +1,7 @@
 """Causal region pipeline, with a detector-independent API and optional YOLO video CLI."""
 import argparse
 import json
+import time
 from pathlib import Path
 import numpy as np
 from PIL import Image
@@ -65,8 +66,12 @@ def main():
     p.add_argument('--output', default='runs/video.mp4')
     p.add_argument('--tracker-config')
     p.add_argument('--fixed-reliability', action='store_true')
+    p.add_argument('--timing-report', help='JSON timing summary excluding video decoding, encoding and file writes')
+    p.add_argument('--timing-warmup', type=int, default=10)
     p.add_argument('--device', default='cuda:0' if torch.cuda.is_available() else 'cpu')
     a = p.parse_args()
+    if a.timing_warmup < 0:
+        p.error('Timing warmup must be nonnegative')
     import cv2
     from ultralytics import YOLO
     cfg = TrackerConfig(**json.loads(Path(a.tracker_config).read_text())) if a.tracker_config else None
@@ -86,24 +91,44 @@ def main():
         cap.release()
         raise RuntimeError('Video encoder unavailable')
     frame_index = 0
+    elapsed, roi_counts = [], []
+    def sync():
+        if pipe.device.type == 'cuda':
+            torch.cuda.synchronize(pipe.device)
     try:
         with output.with_suffix('.jsonl').open('w', encoding='utf-8') as log:
             while True:
                 ok, bgr = cap.read()
                 if not ok:
                     break
+                sync()
+                start = time.perf_counter()
                 prediction = detector.predict(bgr, imgsz=640, conf=0.25, iou=0.5, agnostic_nms=True,
                                               device=a.device, verbose=False)[0]
                 boxes = prediction.boxes
                 detections = np.c_[boxes.xyxy.cpu().numpy(), boxes.conf.cpu().numpy()]
                 frame = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
                 restored, records = pipe.step(frame, detections, dt=1/fps)
+                sync()
+                if frame_index >= a.timing_warmup:
+                    elapsed.append(time.perf_counter()-start)
+                    roi_counts.append(len(records))
                 writer.write(cv2.cvtColor(np.asarray(restored), cv2.COLOR_RGB2BGR))
                 log.write(json.dumps(dict(frame_index=frame_index, candidates=records))+'\n')
                 frame_index += 1
     finally:
         cap.release()
         writer.release()
+    if a.timing_report:
+        report = dict(scope='detector, tracking, ROI preparation, restorer, classifier and compositing; excludes video I/O and logging',
+            measured_frames=len(elapsed), warmup_frames=min(frame_index, a.timing_warmup),
+            mean_frame_ms=1000*sum(elapsed)/len(elapsed) if elapsed else None,
+            fps=len(elapsed)/sum(elapsed) if elapsed and sum(elapsed) else None,
+            mean_roi_count=sum(roi_counts)/len(roi_counts) if roi_counts else None,
+            device=str(pipe.device), torch=str(torch.__version__), threads=torch.get_num_threads())
+        report_path = Path(a.timing_report)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
 
 
 if __name__ == '__main__':

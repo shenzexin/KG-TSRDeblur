@@ -170,6 +170,10 @@ def render_frame(linear, t, params):
 
 def generate_source(task):
     row, args = task
+    if row.get('source_sha256') and sha256_file(row['private_path']) != row['source_sha256']:
+        raise ValueError('Source content changed after inventory')
+    frame_count = args.get('frame_count', FRAME_COUNT)
+    center = frame_count // 2
     cv2.setNumThreads(1)
     rgb = resize_rgb(row['private_path'], args['side'])
     linear = linearize(rgb)
@@ -180,9 +184,9 @@ def generate_source(task):
         folder = Path(args['output'])/'sequences'/row['split']/params['sequence_id']
         folder.mkdir(parents=True, exist_ok=True)
         sequence_frames = []
-        for index in range(FRAME_COUNT):
+        for index in range(frame_count):
             path = folder/f'frame_{index:03d}.jpg'
-            t = index-2
+            t = index-center
             if not path.exists():
                 pixels, displacement, offsets = render_frame(linear, t, params)
                 ok, compressed = cv2.imencode('.jpg', cv2.cvtColor(pixels, cv2.COLOR_RGB2BGR),
@@ -201,9 +205,9 @@ def generate_source(task):
             sequence_frames.append(frame['blur_path'])
             frames.append(frame)
         sequences.append(dict(**params, source_id=row['source_id'], group_id=row['group_id'], split=row['split'],
-            fps=FPS, frame_count=FRAME_COUNT, center_frame_index=2, synthetic=True,
+            fps=FPS, frame_count=frame_count, center_frame_index=center, synthetic=True,
             motion_model='global_image_plane_translation_with_constant_acceleration',
-            frames=sequence_frames, center_triplet=sequence_frames[1:4]))
+            frames=sequence_frames, center_triplet=sequence_frames[center-1:center+2]))
     return sequences, frames
 
 
@@ -215,23 +219,33 @@ def build(args):
     started = time.perf_counter()
     out = Path(args.output).resolve()
     out.mkdir(parents=True, exist_ok=True)
+    frame_count = getattr(args, 'frames', FRAME_COUNT)
+    if frame_count < 3:
+        raise ValueError('At least three frames are required')
     run_config = dict(side=args.side, priority_variants=args.priority_variants, seed=args.seed,
-                      jpeg_quality=args.jpeg_quality, frame_count=FRAME_COUNT, version=VERSION,
+                      jpeg_quality=args.jpeg_quality, frame_count=frame_count, version=VERSION,
                       priority_only=args.priority_only)
     config_path = out/'generation_config.json'
     if config_path.exists() and json.loads(config_path.read_text()) != run_config:
         raise ValueError('Existing output uses a different configuration; choose another directory')
-    config_path.write_text(json.dumps(run_config, indent=2), encoding='utf-8')
     rows, aliases, raw_count = inventory(args.source, args.side, args.seed, args.priority_only)
     if args.limit:
         rows = rows[:args.limit]
     public_sources = [{k: v for k, v in r.items() if k not in {'private_path', 'phash'}} for r in rows]
+    previous_sources = out/'sources.jsonl'
+    if previous_sources.exists():
+        previous = [json.loads(line) for line in previous_sources.read_text(encoding='utf-8').splitlines() if line.strip()]
+        if previous != public_sources:
+            raise ValueError('Source inventory changed; choose a new output directory instead of reusing images')
+    elif any((out/'sequences').rglob('*.jpg')):
+        raise ValueError('Existing images have no source inventory; choose a new output directory')
+    config_path.write_text(json.dumps(run_config, indent=2), encoding='utf-8')
     write_jsonl(out/'sources.jsonl', public_sources)
     (out/'source_aliases.json').write_text(json.dumps(aliases, indent=2), encoding='utf-8')
     print(json.dumps(dict(event='inventory_complete', raw_images=raw_count, unique_selected=len(rows),
           priority_sources=sum(r['priority'] for r in rows), source_groups=len({r['group_id'] for r in rows}))), flush=True)
     settings = dict(output=str(out), side=args.side, priority_variants=args.priority_variants,
-                    seed=args.seed, jpeg_quality=args.jpeg_quality)
+                    seed=args.seed, jpeg_quality=args.jpeg_quality, frame_count=frame_count)
     sequences, frames = [], []
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         pending = [pool.submit(generate_source, (r, settings)) for r in rows]
@@ -253,7 +267,7 @@ def build(args):
         source_images_received=raw_count, unique_source_images_used=len(rows), source_images_released=0,
         sharp_frames_released=0, priority_source_count=sum(r['priority'] for r in rows),
         priority_variants=args.priority_variants, total_sequences=len(sequences), total_blurred_frames=len(frames),
-        frames_per_sequence=FRAME_COUNT, fps=FPS, maximum_long_side=args.side, jpeg_quality=args.jpeg_quality,
+        frames_per_sequence=frame_count, fps=FPS, maximum_long_side=args.side, jpeg_quality=args.jpeg_quality,
         source_groups=len({r['group_id'] for r in rows}),
         sequences_by_split=dict(Counter(r['split'] for r in sequences)),
         frames_by_split=dict(Counter(r['split'] for r in frames)),
@@ -275,6 +289,7 @@ def main():
     p.add_argument('--side', type=int, default=1024)
     p.add_argument('--priority-variants', type=int, default=12)
     p.add_argument('--seed', type=int, default=42)
+    p.add_argument('--frames', type=int, default=5, help='Use at least 9 for confirmation, five missing frames and reacquisition')
     p.add_argument('--jpeg-quality', type=int, default=94)
     p.add_argument('--workers', type=int, default=4)
     p.add_argument('--limit', type=int, default=0, help='Limit unique sources for a pilot build')

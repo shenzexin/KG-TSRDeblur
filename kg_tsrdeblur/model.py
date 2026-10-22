@@ -19,6 +19,10 @@ class ModelConfig:
     spatial_only: bool = False
     conv_bottleneck: bool = False
 
+    def __post_init__(self):
+        self.encoder_depths = tuple(self.encoder_depths)
+        self.decoder_depths = tuple(self.decoder_depths)
+
 
 class LayerNorm2d(nn.Module):
     def __init__(self, channels):
@@ -131,8 +135,8 @@ class SpatialFrequencyRefinement(nn.Module):
         self.spatial_only = spatial_only
         self.reduce = nn.Conv2d(c, reduced, 1)
         self.spatial = nn.Sequential(nn.Conv2d(reduced, reduced, 3, padding=1, groups=reduced), nn.Conv2d(reduced, reduced, 1))
-        self.spectral = nn.Sequential(nn.Conv2d(reduced, reduced, 1), nn.GELU(), nn.Conv2d(reduced, reduced, 1))
-        self.fusion = nn.Conv2d(2*reduced, 1, 1)
+        self.spectral = None if spatial_only else nn.Sequential(nn.Conv2d(reduced, reduced, 1), nn.GELU(), nn.Conv2d(reduced, reduced, 1))
+        self.fusion = None if spatial_only else nn.Conv2d(2*reduced, 1, 1)
         self.project = nn.Conv2d(reduced, c, 1)
 
     def forward(self, x):
@@ -163,7 +167,7 @@ class KGTSRDeblur(nn.Module):
             self.encoders.append(nn.Sequential(*(NAFBlock(c) for _ in range(depth))))
             self.downs.append(nn.Conv2d(c, 2*c, 2, stride=2))
             c *= 2
-        self.motion = MotionAdapter(c, cfg.motion_dim)
+        self.motion = None if cfg.image_only else MotionAdapter(c, cfg.motion_dim)
         self.bottleneck = nn.Sequential(*(
             NAFBlock(c) if cfg.conv_bottleneck else WindowBlock(c, cfg.heads, cfg.window, (i%2)*(cfg.window//2))
             for i in range(cfg.transformer_blocks)))
@@ -194,7 +198,10 @@ class KGTSRDeblur(nn.Module):
             x = enc(x)
             skips.append(x)
             x = down(x)
-        x, gate = self.motion(x, descriptor, reliability)
+        if self.motion is None:
+            gate = x.new_zeros(b, 1, *x.shape[-2:])
+        else:
+            x, gate = self.motion(x, descriptor, reliability)
         x = self.bottleneck(x)
         for up, fuse, dec, skip in zip(self.ups, self.fusions, self.decoders, reversed(skips)):
             x = dec(fuse(torch.cat([up(x), skip], dim=1)))

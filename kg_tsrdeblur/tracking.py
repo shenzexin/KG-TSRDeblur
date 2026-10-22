@@ -8,11 +8,12 @@ from scipy.optimize import linear_sum_assignment
 class TrackerConfig:
     confirm_hits: int = 3
     max_missing: int = 5
-    iou_threshold: float = 0.1
+    iou_threshold: float = 0.01
     innovation_threshold: float = 9.4877 / 4
-    process_accel_std: float = 20.0
+    process_accel_std: float = 300.0
     measurement_std: float = 3.0
     initial_velocity_std: float = 100.0
+    initial_displacement_fraction: float = 1.0
     alpha: float = 1.0
     beta: float = 0.1
     gamma: float = 0.5
@@ -51,10 +52,13 @@ def filter_detections(detections, cfg):
 
 
 class KalmanTrack:
-    def __init__(self, track_id, detection, cfg):
+    def __init__(self, track_id, detection, cfg, dt=1/30):
         self.id, self.cfg = track_id, cfg
         self.x = np.r_[xyxy_to_geometry(detection[:4]), np.zeros(4)]
-        self.P = np.diag([cfg.measurement_std**2]*4 + [cfg.initial_velocity_std**2]*4)
+        # Initial motion is unknown: allow one box dimension per frame, in px/s.
+        velocity_std = np.maximum(cfg.initial_velocity_std,
+            cfg.initial_displacement_fraction * np.tile(self.x[2:4], 2) / dt)
+        self.P = np.diag(np.r_[[cfg.measurement_std**2]*4, velocity_std**2])
         self.H = np.eye(4, 8)
         self.R = np.eye(4) * cfg.measurement_std**2
         self.hits, self.missing = 1, 0
@@ -140,7 +144,7 @@ class MultiObjectTracker:
                     matched.add(j)
         for j, det in enumerate(detections):
             if j not in matched:
-                self.tracks.append(KalmanTrack(self.next_id, det, cfg))
+                self.tracks.append(KalmanTrack(self.next_id, det, cfg, dt))
                 self.next_id += 1
         self.tracks = [t for t in self.tracks if t.missing <= cfg.max_missing and
                        not (t.missing and not t.confirmed)]

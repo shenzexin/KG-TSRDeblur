@@ -28,8 +28,10 @@ def verify(root):
     frame_by_path = {f['blur_path']: f for f in frames}
     assert len(frame_by_path) == len(frames)
     for s in sequences:
-        assert s['synthetic'] is True and len(s['frames']) == 5
-        assert s['center_frame_index'] == 2 and s['center_triplet'] == s['frames'][1:4]
+        count, center = s['frame_count'], s['center_frame_index']
+        assert s['synthetic'] is True and count == summary['frames_per_sequence'] and count >= 3
+        assert len(s['frames']) == count and center == count//2
+        assert s['center_triplet'] == s['frames'][center-1:center+2]
         source_splits[s['source_id']].add(s['split'])
         group_splits[s['group_id']].add(s['split'])
         sequence_hashes = []
@@ -37,6 +39,9 @@ def verify(root):
             f = frame_by_path[p]
             assert f['sequence_id'] == s['sequence_id'] and f['frame_index'] == i
             assert f['split'] == s['split'] and f['synthetic'] is True
+            assert f['source_id'] == s['source_id'] and f['group_id'] == s['group_id']
+            assert abs(f['timestamp_seconds'] - i/s['fps']) < 1e-9
+            assert f['relative_time_frames'] == i-center
             path = (root/p).resolve()
             assert path.is_relative_to(root) and path.suffix == '.jpg'
             digest = sha256(path)
@@ -48,7 +53,7 @@ def verify(root):
                 assert not im.getexif()
                 im.verify()
             sequence_hashes.append(digest)
-        assert len(set(sequence_hashes)) == 5
+        assert len(set(sequence_hashes)) == count
     assert all(len(v) == 1 for v in source_splits.values())
     assert all(len(v) == 1 for v in group_splits.values())
     actual_images = {p.relative_to(root).as_posix() for p in (root/'sequences').rglob('*.jpg')}

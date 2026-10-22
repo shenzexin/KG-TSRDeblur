@@ -35,8 +35,8 @@ This document maps the method equations to code and records the settings used by
 | NAF-style block details | Multiplicative gate, simplified channel attention, zero-initialized residual scales, 2x expansion |
 | Motion MLP and adapters | 16->32->32 GELU MLP, linear channel projection, 1x1 gate, two-layer GELU correction |
 | Frequency refinement width | 16 compressed channels; real gain from two 1x1 layers with GELU; FFT float32 with matching ortho normalization |
-| Kalman noise | dt in seconds; white acceleration std=20 px/s^2; measurement std=3 px; initial velocity std=100 px/s; initial geometry variance=9 |
-| Assignment gates | IoU>=0.1; normalized innovation<=9.4877/4 (chosen numerical gate); no category-based rejection |
+| Kalman noise | dt in seconds; white acceleration std=300 px/s^2; measurement std=3 px; initial velocity std=max(100 px/s, one corresponding box dimension/dt); initial geometry variance=9 |
+| Assignment gates | IoU>=0.01; normalized innovation<=9.4877/4 (chosen numerical gate); no category-based rejection |
 | Reliability penalties | alpha=1, beta=0.1, gamma=0.5; retained last accepted confidence/innovation across gaps |
 | Confirmation | Three accumulated accepted observations including initialization, separated by frame calls; tentative tracks dropped on first miss |
 | Box used for ROI | Current detection when matched; predicted box during gaps; covariance normalization uses selected unexpanded box |
@@ -52,7 +52,7 @@ This document maps the method equations to code and records the settings used by
 
 ## Parameter counting and evaluation
 
-With `configs/paper_reference.json`, the restorer contains 848,613 parameters including the motion encoder. Stage depths and channel widths can be adjusted in the configuration. `benchmark.py` measures the configured network's parameter count and per-ROI latency. MAC counting is not implemented for FFT and attention.
+With `configs/paper_reference.json`, the restorer contains 848,613 parameters including the motion encoder. Stage depths and channel widths can be adjusted in the configuration. `benchmark.py` measures the configured network's parameter count and per-ROI latency. The operation counter includes executed convolution/linear layers and attention QK/AV products. FFT input sizes are recorded separately; FFT, normalization, nonlinearities and elementwise operations are excluded from counted MACs, so this is not a total-operation estimate.
 
 Pipeline ROI caching uses detector observations for tracking, and aligned sharp frames/annotations only for training targets and label assignment. A teacher detection or ground-truth trajectory must not silently replace noisy detector observations when claiming full-pipeline results. The cache drops unmatched training ROIs with no label; pipeline evaluation counts missed and misclassified signs.
 
@@ -61,3 +61,15 @@ Resume restores optimizer/scheduler/model, but not exact shuffle or RNG position
 ## Third-party scope
 
 Neural blocks and tracking here are newly written. PyTorch/torchvision and SciPy supply primitives; optional Ultralytics supplies the detector. Their software/data/model licenses remain separate. Dataset download and private-video redistribution are not included. No manuscript PDF, correspondence email or private user file is included in the public package.
+
+## Correctness maintenance
+
+- Image-only and spatial-only architectures omit their inactive motion and spectral modules. Retrain ablations independently; legacy model weights discard only those known inactive parameter prefixes on load. Optimizer state from an older, unpruned ablation is not compatible with the pruned architecture; start a new stage with `--init-checkpoint`.
+- Checkpoints store the best validation PSNR before saving both latest and best files. Older checkpoints can recover that value from their adjacent validation log; otherwise resume fails explicitly rather than overwriting a better checkpoint.
+- Split validation compares sequence IDs, source IDs, scene groups, source hashes and image paths. The restoration loader rejects blurred-only sequence manifests with an explicit schema error.
+- Initial velocity uncertainty scales with target size and frame interval. Both IoU and normalized-innovation gates remain required. The more permissive overlap gate supports large inter-frame shifts while still rejecting nonoverlapping boxes; it may increase ambiguous assignments in crowded scenes and must be calibrated on held-out annotated videos. The acceleration setting and gates are supplementary settings, not recovered manuscript values.
+- The published five-frame dataset remains unchanged. It is too short for three-hit confirmation followed by five missing observations and reacquisition. Build a separate dataset with `--frames 9` or more for that protocol; do not relabel generated sequences as captured videos.
+- Dataset generation checks source inventory identity before reusing files and verifies each private source hash after inventory. Use a new output folder after changing sources or generation settings.
+- Video inference accepts `--timing-report runs/pipeline_timing.json --timing-warmup 10`. The report times detector inference, tracking, ROI preparation, restoration, classification and compositing, with device synchronization. It excludes video decoding/encoding and log writes. It requires actual trained checkpoints and is distinct from the restorer-only benchmark.
+
+The default full model still has 848,613 parameters. No architectural evidence supplied with the manuscript determines a unique 9.1-million-parameter reconstruction. Changing widths merely to match that count would not establish equivalent experiments. The released sequences have no aligned sharp targets or traffic-sign annotations, so they support sequence loading and qualitative inspection, not the manuscript's quantitative restoration/recognition results.
