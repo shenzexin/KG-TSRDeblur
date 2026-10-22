@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "Please cite the associated manuscript when using this implementation. This repository is a paper-based reference implementation."
+type: software
+title: "KG-TSRDeblur: Paper-based Reference Implementation"
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/shenzexin/KG-TSRDeblur"
+authors:
+  - family-names: Shen
+    given-names: Zexin
+preferred-citation:
+  type: unpublished
+  title: "KG-TSRDeblur: Kalman-Guided Lightweight Transformer for Traffic Sign Motion Deblurring and Recognition in Autonomous Driving"
+  authors:
+    - family-names: Shen
+      given-names: Zexin
+    - family-names: Wei
+      given-names: Chun-Ta
+    - family-names: Wang
+      given-names: Ming-Chih Jason
+    - family-names: Ko
+      given-names: Ching-Mai
+    - family-names: Lai
+      given-names: Weilong
+    - family-names: Yan
+      given-names: Jiequn
+  year: 2026
+  notes: "Manuscript supplied by the author; publication status and DOI not supplied."

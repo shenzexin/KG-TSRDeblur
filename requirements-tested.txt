@@ -1,0 +1,7 @@
+# CPU validation environment. For GPU, install matching CUDA wheels from pytorch.org.
+torch==2.7.1
+torchvision==0.22.1
+numpy==2.2.6
+scipy==1.16.3
+Pillow==12.3.0
+pytest==8.4.2
