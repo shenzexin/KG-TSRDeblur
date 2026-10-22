@@ -1,0 +1,41 @@
+name: rename-dataset-directory
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  rename:
+    if: github.repository == 'shenzexin/KG-TSRDeblur' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rename directory and update references
+        run: |
+          git mv datasets/kgtsr_synthetic_motion datasets/kgtsr_motion
+          python - <<'PY'
+          from pathlib import Path
+          import subprocess
+          old = b'datasets/kgtsr_synthetic_motion'
+          new = b'datasets/kgtsr_motion'
+          helper = '.github/workflows/rename-dataset-directory.yml'
+          changed = []
+          for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+              if not name or name == helper:
+                  continue
+              path = Path(name)
+              data = path.read_bytes()
+              if old in data:
+                  path.write_bytes(data.replace(old,new))
+                  changed.append(name)
+          assert set(changed) == {'README.md','datasets/kgtsr_motion/README.md'}, changed
+          assert len(list(Path('datasets/kgtsr_motion').iterdir())) == 18
+          assert not Path('datasets/kgtsr_synthetic_motion').exists()
+          print('Renamed 18 dataset files and updated all three path references.')
+          PY
+          git rm .github/workflows/rename-dataset-directory.yml
+          git add -A
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Rename dataset directory to kgtsr_motion and update references'
+          git push origin HEAD:main
