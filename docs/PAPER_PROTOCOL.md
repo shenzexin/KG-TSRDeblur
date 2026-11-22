@@ -33,7 +33,7 @@ For Tables 1-3, calculate each metric independently on both datasets for each of
 
 ## Default model configuration
 
-`configs/parameter_matched_9p1m.json` specifies the default training and benchmark architecture. It uses a 468-channel Transformer bottleneck and a two-layer motion encoder with a 18,994-unit hidden layer and a 32-dimensional output. The motion encoder runs once per ROI before spatial broadcast. Base width 32, two downsampling stages, four attention blocks, four heads and 8 x 8 windows are retained.
+`configs/parameter_matched_9p1m.json` specifies the default training and benchmark architecture. It uses a 468-channel Transformer bottleneck and a two-layer motion encoder with an 18,994-unit hidden layer and a 32-dimensional output. The motion encoder runs once per ROI before spatial broadcast. Base width 32, two downsampling stages, four attention blocks, four heads and 8 x 8 windows are retained.
 
 The layer shapes give 9,099,991 parameters and 9,429,537,760 counted MACs per 128 x 128 RGB ROI. At the precision of Table 2 these are 9.1 M and 9.4 G. The analytical MAC count follows the benchmark's convolution, linear and QK/AV attention convention. The configuration specifies architectural complexity; recognition and restoration scores depend on the trained checkpoint and evaluation data.
 
