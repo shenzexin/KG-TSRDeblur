@@ -57,6 +57,20 @@ class PerceptionPipeline:
         return rendered, records
 
 
+def withheld_frames(path, sequence_id):
+    """Read one contiguous 1-, 3-, or 5-frame gap from evaluation JSONL."""
+    rows = [json.loads(line) for line in Path(path).read_text(encoding='utf-8').splitlines()
+            if line.strip()]
+    indices = sorted(row['frame_index'] for row in rows if row['sequence_id'] == sequence_id)
+    if len(indices) not in (1, 3, 5) or indices != list(range(indices[0], indices[0] + len(indices))):
+        raise ValueError('Each trial must contain one contiguous gap of 1, 3, or 5 frames')
+    if indices[0] < 3:
+        raise ValueError('Reserve at least three frames before withholding observations')
+    if any(row['gap_length'] != len(indices) for row in rows if row['sequence_id'] == sequence_id):
+        raise ValueError('gap_length must agree with the number of withheld frames')
+    return set(indices)
+
+
 def main():
     p = argparse.ArgumentParser(description='YOLOv8n -> Kalman -> ROI restoration -> MobileNetV3-Small')
     p.add_argument('--input', required=True)
@@ -65,6 +79,8 @@ def main():
     p.add_argument('--classifier', required=True)
     p.add_argument('--output', default='runs/video.mp4')
     p.add_argument('--tracker-config')
+    p.add_argument('--sequence-id', help='Trial ID used by the observation-gap evaluator')
+    p.add_argument('--withheld-frames', help='JSONL with sequence_id, frame_index and gap_length')
     p.add_argument('--fixed-reliability', action='store_true')
     p.add_argument('--timing-report', help='JSON timing summary excluding video decoding, encoding and file writes')
     p.add_argument('--timing-warmup', type=int, default=10)
@@ -72,6 +88,9 @@ def main():
     a = p.parse_args()
     if a.timing_warmup < 0:
         p.error('Timing warmup must be nonnegative')
+    if a.withheld_frames and not a.sequence_id:
+        p.error('--withheld-frames requires --sequence-id')
+    gaps = withheld_frames(a.withheld_frames, a.sequence_id) if a.withheld_frames else set()
     import cv2
     from ultralytics import YOLO
     cfg = TrackerConfig(**json.loads(Path(a.tracker_config).read_text())) if a.tracker_config else None
@@ -103,10 +122,13 @@ def main():
                     break
                 sync()
                 start = time.perf_counter()
-                prediction = detector.predict(bgr, imgsz=640, conf=0.25, iou=0.5, agnostic_nms=True,
-                                              device=a.device, verbose=False)[0]
-                boxes = prediction.boxes
-                detections = np.c_[boxes.xyxy.cpu().numpy(), boxes.conf.cpu().numpy()]
+                if frame_index in gaps:
+                    detections = np.empty((0, 5))
+                else:
+                    prediction = detector.predict(bgr, imgsz=640, conf=0.25, iou=0.5, agnostic_nms=True,
+                                                  device=a.device, verbose=False)[0]
+                    boxes = prediction.boxes
+                    detections = np.c_[boxes.xyxy.cpu().numpy(), boxes.conf.cpu().numpy()]
                 frame = Image.fromarray(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
                 restored, records = pipe.step(frame, detections, dt=1/fps)
                 sync()
@@ -114,11 +136,16 @@ def main():
                     elapsed.append(time.perf_counter()-start)
                     roi_counts.append(len(records))
                 writer.write(cv2.cvtColor(np.asarray(restored), cv2.COLOR_RGB2BGR))
-                log.write(json.dumps(dict(frame_index=frame_index, candidates=records))+'\n')
+                record = dict(frame_index=frame_index, candidates=records)
+                if a.sequence_id is not None:
+                    record['sequence_id'] = a.sequence_id
+                log.write(json.dumps(record)+'\n')
                 frame_index += 1
     finally:
         cap.release()
         writer.release()
+    if gaps and max(gaps) >= frame_index:
+        raise ValueError('A withheld frame is outside the decoded video')
     if a.timing_report:
         report = dict(scope='detector, tracking, ROI preparation, restorer, classifier and compositing; excludes video I/O and logging',
             measured_frames=len(elapsed), warmup_frames=min(frame_index, a.timing_warmup),

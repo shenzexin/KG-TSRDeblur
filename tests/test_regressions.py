@@ -21,11 +21,12 @@ def test_detector_adam_both_betas():
         configure_paper_adam(torch.optim.SGD([torch.nn.Parameter(torch.ones(2))],lr=.01))
 
 
-@pytest.mark.parametrize('key', ['source_id', 'group_id', 'source_sha256'])
+@pytest.mark.parametrize('key', ['source_id', 'source_image', 'mixed_source_fields', 'group_id', 'source_sha256'])
 def test_shared_source_variants_rejected(tmp_path, key):
     paths = [tmp_path/'train.jsonl', tmp_path/'val.jsonl']
     for i, path in enumerate(paths):
-        path.write_text(json.dumps({'sharp': f'{i}.png', 'sequence_id': f'seq{i}', key: 'shared'}))
+        field = ('source_image', 'source_id')[i] if key == 'mixed_source_fields' else key
+        path.write_text(json.dumps({'sharp': f'{i}.png', 'sequence_id': f'seq{i}', field: 'shared'}))
     with pytest.raises(ValueError, match='leakage'):
         ensure_split_disjoint(*paths)
 

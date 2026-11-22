@@ -69,6 +69,8 @@ def ensure_split_disjoint(train_manifest, val_manifest):
         rows = [json.loads(x) for x in p.read_text(encoding='utf-8').splitlines() if x.strip()]
         ids = {(key, str(r[key])) for r in rows
                for key in ('sequence_id', 'source_id', 'group_id', 'source_sha256') if r.get(key)}
+        ids.update(('source_id', str(r['source_image'])) for r in rows
+                   if r.get('source_image') is not None and r['source_image'] != '')
         paths = {str((p.parent/r[key]).resolve()).casefold() for r in rows
                  for key in ('sharp', 'blur', 'blur_path') if isinstance(r.get(key), str)}
         paths.update(str((p.parent/value).resolve()).casefold() for r in rows
