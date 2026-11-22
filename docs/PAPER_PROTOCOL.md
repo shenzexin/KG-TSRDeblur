@@ -13,7 +13,7 @@ The public implementation follows the manuscript's causal restoration method. It
 
 ## Data and checkpoints
 
-- Manuscript driving-video experiments use 120 annotated captured sequences and 36,000 frames. Figure 2 uses 18-frame windows from that dataset.
+- The manuscript driving-video dataset contains 120 captured sequences and 36,000 annotated frames: 84 sequences and 25,200 frames for training, 12 and 3,600 for validation, and 24 and 7,200 for testing. Figure 2 uses 18-frame windows from the captured sequences. See [dataset details](DATA.md#manuscript-driving-video-dataset).
 - The public release consists of 324 five-frame synthetic sequences (1,620 blurred frames) based on 27 source photographs. It lacks sharp targets, class labels and tracking boxes.
 - The manuscript also uses 12-frame TT100K-derived sequences created with continuous translation and scaling and exposure integration. The exposure midpoint supplies the sharp target and transformed annotation. The 12-frame converter is documented in [Data preparation](DATA.md#tt100k-derived-12-frame-sequences). The sequence-cache command accepts externally prepared paired sequences and detector observations. Reproducing the reported experiment requires the original synthesis settings, split and 20-class mapping.
 - The public reference restorer has 848,613 parameters and about 1.784 G counted MACs at batch size one and 128 x 128 input. The manuscript reports 9.1 M and 9.4 G for its experiment. Its original architecture configuration and checkpoint are required to reproduce that run. The reference MAC counter excludes FFT, normalization and elementwise operations.
