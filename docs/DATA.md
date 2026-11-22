@@ -26,7 +26,7 @@ python -m kg_tsrdeblur.prepare tt100k --root data/tt100k --annotations data/tt10
 
 Converter expects official-style `{"imgs":{"image_id":{"path":"train/image_id.jpg","objects":[{"category":"...","bbox":{"xmin":0,"ymin":0,"xmax":10,"ymax":10}}]}}}`. It holds out 10% of training **images**, then crops objects, preventing different crops from the same image crossing splits. A JSON array of exactly 20 category strings may be passed with `--classes`. Without it, top20 training-frequency categories are selected and recorded in `classes.json`. Source image IDs, blur lengths and angles are saved. For the manuscript protocol, supply the shared 20-class mapping and use the experiment's source-image IDs and dataset splits.
 
-Blur length is sampled from 3..25 pixels and angle uniformly over [0,180). This is a reference degradation generator, not the original experimental protocol. The 20 categories shared with private videos cannot be established without the private annotation mapping.
+Blur length is sampled from 3..25 pixels and angle uniformly over [0,180). The single-image converter uses line-kernel blur. For the paired 12-frame protocol, use the exposure-integration converter below and supply the shared class list in experiment order.
 
 ## Causal video priors
 
