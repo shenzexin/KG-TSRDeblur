@@ -15,6 +15,8 @@ Architecture, training and tracking settings are configurable. See [IMPLEMENTATI
 - Paired ROI evaluation, class-correct pipeline precision/recall, image/video inference, TT100K conversion, causal sequence caching, synthetic software fixtures and tests.
 - Optional Ultralytics YOLOv8n training and inference integration. The detector requires traffic-sign training data and weights.
 
+[Manuscript experiment correspondence](docs/PAPER_PROTOCOL.md) maps the published method and experiments to the public implementation.
+
 ## Dataset
 
 The [KGTSR Synthetic Motion Sequences](datasets/kgtsr_motion/README.md) subset provides 324 five-frame sequences with 1,620 blurred images, derived from 27 unique author-provided photographs. Original stills and clear reference targets are excluded. Download archives, sequence manifests and verification instructions are available in the dataset directory and [dataset release](https://github.com/shenzexin/KG-TSRDeblur/releases/tag/dataset-v1.0.0).
