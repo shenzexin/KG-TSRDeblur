@@ -24,7 +24,7 @@ Download the original dataset separately under its applicable terms. Supply its 
 python -m kg_tsrdeblur.prepare tt100k --root data/tt100k --annotations data/tt100k/annotations.json --train-ids data/tt100k/train/ids.txt --test-ids data/tt100k/test/ids.txt --output data/tt100k_pairs --seed 42
 ```
 
-Converter expects official-style `{"imgs":{"image_id":{"path":"train/image_id.jpg","objects":[{"category":"...","bbox":{"xmin":0,"ymin":0,"xmax":10,"ymax":10}}]}}}`. It holds out 10% of training **images**, then crops objects, preventing different crops from the same image crossing splits. A JSON array of exactly 20 category strings may be passed with `--classes`. Without it, top20 training-frequency categories are selected and recorded in `classes.json`. Source image IDs, blur lengths and angles are saved. These are explicit replacement choices; original manuscript classes and splits were not provided.
+Converter expects official-style `{"imgs":{"image_id":{"path":"train/image_id.jpg","objects":[{"category":"...","bbox":{"xmin":0,"ymin":0,"xmax":10,"ymax":10}}]}}}`. It holds out 10% of training **images**, then crops objects, preventing different crops from the same image crossing splits. A JSON array of exactly 20 category strings may be passed with `--classes`. Without it, top20 training-frequency categories are selected and recorded in `classes.json`. Source image IDs, blur lengths and angles are saved. For the manuscript protocol, supply the shared 20-class mapping and use the experiment's source-image IDs and dataset splits.
 
 Blur length is sampled from 3..25 pixels and angle uniformly over [0,180). This is a reference degradation generator, not the original experimental protocol. The 20 categories shared with private videos cannot be established without the private annotation mapping.
 
@@ -42,7 +42,7 @@ python -m kg_tsrdeblur.prepare sequence --frames data/seq001/frames.jsonl --fps 
 
 `detections` format is x1,y1,x2,y2,confidence, in full-frame pixels. A fresh tracker is used for every invocation; no future observations enter prior construction. GT annotations assign labels to IoU>=0.5 candidates only; the tracker never consumes them. Sharp and blur full frames must be geometrically aligned. Naturally blurred frames without sharp references belong to recognition/pipeline evaluation, not paired PSNR/SSIM evaluation.
 
-Split source sequences into train/validation/test **before** creating crops or synthetic blur. To combine sequence manifests, rewrite image paths relative to the combined manifest, or preserve sequence subdirectories. Keep all versions of a source clip in one partition. Store the class mapping and sequence split files with each research run. The manuscript's 84/12/24 sequence split cannot be instantiated without its source videos and IDs.
+Split source sequences into train/validation/test **before** creating crops or synthetic blur. To combine sequence manifests, rewrite image paths relative to the combined manifest, or preserve sequence subdirectories. Keep all versions of a source clip in one partition. Store the class mapping and sequence split files with each research run. The manuscript partitions 84, 12, and 24 captured sequences by source sequence ID.
 
 ## Detector data
 
