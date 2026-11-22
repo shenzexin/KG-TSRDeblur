@@ -32,7 +32,7 @@ def read_frames(path):
         if not line.strip():
             continue
         row = json.loads(line)
-        key = (row.get('sequence_id'), row['frame_index'])
+        key = (row['sequence_id'], row['frame_index'])
         if key in frames:
             raise ValueError('Duplicate sequence/frame key: {}'.format(key))
         frames[key] = row
@@ -40,14 +40,19 @@ def read_frames(path):
 
 
 def evaluate(ground_truth, runs):
+    for name, run in runs.items():
+        missing = ground_truth.keys() - run.keys()
+        if missing:
+            raise ValueError('{} is missing {} withheld-frame rows; record empty candidates explicitly'.format(
+                name, len(missing)))
     totals = {}
     for key, frame in ground_truth.items():
         gap = frame['gap_length']
         if gap not in (1, 3, 5):
             raise ValueError('Only withheld frames with gap_length 1, 3 or 5 belong in this manifest')
-        full = runs['full'].get(key, {}).get('candidates', [])
+        full = runs['full'][key]['candidates']
         for name, run in runs.items():
-            candidates = run.get(key, {}).get('candidates', [])
+            candidates = run[key]['candidates']
             if [c['box'] for c in candidates] != [c['box'] for c in full]:
                 raise ValueError('Predicted boxes or candidate order differ at {} for {}'.format(key, name))
             counts = totals.setdefault(gap, {}).setdefault(name, [0, 0, 0])
