@@ -18,7 +18,7 @@ def seed_everything(seed):
 
 
 def load_config(path):
-    return ModelConfig(**json.loads(Path(path).read_text(encoding='utf-8'))) if path else ModelConfig()
+    return ModelConfig(**json.loads(Path(path).read_text(encoding='utf-8'))) if path else ModelConfig.default_architecture()
 
 
 def load_restorer(path, device='cpu'):
