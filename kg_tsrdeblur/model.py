@@ -18,10 +18,16 @@ class ModelConfig:
     image_only: bool = False
     spatial_only: bool = False
     conv_bottleneck: bool = False
+    bottleneck_width: int | None = None
 
     def __post_init__(self):
         self.encoder_depths = tuple(self.encoder_depths)
         self.decoder_depths = tuple(self.decoder_depths)
+        if self.bottleneck_width is not None and (
+            type(self.bottleneck_width) is not int or self.bottleneck_width <= 0
+            or self.bottleneck_width % self.heads
+        ):
+            raise ValueError('Bottleneck width must be a positive multiple of heads')
 
 
 class LayerNorm2d(nn.Module):
@@ -163,19 +169,23 @@ class KGTSRDeblur(nn.Module):
             raise ValueError("Exactly two encoder and decoder stages required")
         self.stem = nn.Conv2d(3, c, 3, padding=1)
         self.encoders, self.downs = nn.ModuleList(), nn.ModuleList()
-        for depth in cfg.encoder_depths:
-            self.encoders.append(nn.Sequential(*(NAFBlock(c) for _ in range(depth))))
-            self.downs.append(nn.Conv2d(c, 2*c, 2, stride=2))
-            c *= 2
+        encoder_widths = (c, 2*c)
+        bottleneck_width = cfg.bottleneck_width or 4*c
+        for depth, channels, out_channels in zip(
+            cfg.encoder_depths, encoder_widths, (*encoder_widths[1:], bottleneck_width)
+        ):
+            self.encoders.append(nn.Sequential(*(NAFBlock(channels) for _ in range(depth))))
+            self.downs.append(nn.Conv2d(channels, out_channels, 2, stride=2))
+        c = bottleneck_width
         self.motion = None if cfg.image_only else MotionAdapter(c, cfg.motion_dim)
         self.bottleneck = nn.Sequential(*(
             NAFBlock(c) if cfg.conv_bottleneck else WindowBlock(c, cfg.heads, cfg.window, (i%2)*(cfg.window//2))
             for i in range(cfg.transformer_blocks)))
         self.ups, self.fusions, self.decoders = nn.ModuleList(), nn.ModuleList(), nn.ModuleList()
-        for depth in cfg.decoder_depths:
-            self.ups.append(nn.Sequential(nn.Conv2d(c, 2*c, 1), nn.PixelShuffle(2)))
-            self.fusions.append(nn.Conv2d(c, c//2, 1))
-            c //= 2
+        for depth, out_channels in zip(cfg.decoder_depths, reversed(encoder_widths)):
+            self.ups.append(nn.Sequential(nn.Conv2d(c, 4*out_channels, 1), nn.PixelShuffle(2)))
+            self.fusions.append(nn.Conv2d(2*out_channels, out_channels, 1))
+            c = out_channels
             self.decoders.append(nn.Sequential(*(NAFBlock(c) for _ in range(depth))))
         self.refine = SpatialFrequencyRefinement(c, cfg.refinement_channels, cfg.spatial_only)
         self.head = nn.Conv2d(c, 3, 3, padding=1)
