@@ -39,7 +39,7 @@ python -m pip install -e ".[dev]"
 python -m pytest -q
 ```
 
-For CUDA, use the matching wheel command from [PyTorch](https://pytorch.org/get-started/locally/). The tested direct dependency versions are in `requirements-tested.txt`; this is not a cross-platform transitive lockfile. Video/detector extras: `python -m pip install -e ".[video]"`. Ultralytics has its own license; the MIT license here covers the newly written repository code, not third-party packages, datasets or checkpoints.
+For CUDA, use the matching wheel command from [PyTorch](https://pytorch.org/get-started/locally/). The tested direct dependency versions are in `requirements-tested.txt`; the file lists direct dependencies. Video/detector extras: `python -m pip install -e ".[video]"`. Ultralytics has its own license; the MIT license here covers the newly written repository code, not third-party packages, datasets or checkpoints.
 
 ## Runnable software smoke test
 
@@ -84,11 +84,11 @@ python -m kg_tsrdeblur.evaluate_pipeline --predictions runs/restored_video.jsonl
 python -m kg_tsrdeblur.benchmark --checkpoint runs/joint/best_psnr.pt --device cuda --output runs/roi_benchmark.json
 ```
 
-Video inference writes restored frames and per-frame candidate JSONL. Pixels outside expanded ROI crops remain unchanged before video encoding. At most eight ROIs are restored per frame. Pipeline metrics require both category correctness and IoU >= 0.5. Benchmark timings cover the restoration network only, and must not be reported as complete-pipeline FPS. The operation counter includes convolution, linear layers and attention matrix products; FFT and elementwise work are excluded and reported separately. Add `--timing-report runs/pipeline_timing.json --timing-warmup 10` to video inference for synchronized pipeline timing excluding video I/O.
+Video inference writes restored frames and per-frame candidate JSONL. Pixels outside expanded ROI crops remain unchanged before video encoding. At most eight ROIs are restored per frame. Pipeline metrics require both category correctness and IoU >= 0.5. The benchmark reports per-ROI restoration latency. Video inference reports complete-pipeline timing separately. The operation counter includes convolution, linear layers and attention matrix products; FFT and elementwise work are excluded and reported separately. Add `--timing-report runs/pipeline_timing.json --timing-warmup 10` to video inference for synchronized pipeline timing excluding video I/O.
 
 ## Ablations
 
-Create a copy of the model JSON and set `image_only`, `spatial_only` or `conv_bottleneck` to `true`. For fixed reliability, use `--fixed-reliability` in video inference and a consistently modified training manifest assigning 1 to confirmed tracks only. For the no-recognition-loss variant, pass `--no-recognition-loss` in the joint stage. Image-only and spatial-only variants remove inactive modules from parameter counts and execution. Retrain every architecture/loss variant with the same budget and seeds. Use `evaluate --blurred-baseline` for unprocessed ROIs. Ablation switches provide experimental controls; no ablation results are included.
+Create a copy of the model JSON and set `image_only`, `spatial_only` or `conv_bottleneck` to `true`. For fixed reliability, use `--fixed-reliability` in video inference and a consistently modified training manifest assigning 1 to confirmed tracks only. For the no-recognition-loss variant, pass `--no-recognition-loss` in the joint stage. Image-only and spatial-only variants remove inactive modules from parameter counts and execution. Retrain every architecture/loss variant with the same budget and seeds. Use `evaluate --blurred-baseline` for unprocessed ROIs. Use the ablation switches with the evaluation commands above to produce results for each control.
 
 ## Citation and provenance
 
