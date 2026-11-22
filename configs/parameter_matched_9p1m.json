@@ -16,5 +16,6 @@
   "image_only": false,
   "spatial_only": false,
   "conv_bottleneck": false,
-  "bottleneck_width": 496
+  "bottleneck_width": 468,
+  "motion_hidden_width": 18994
 }
