@@ -17,8 +17,13 @@ Architecture, training and tracking settings are configurable. See [IMPLEMENTATI
 
 [Manuscript experiment correspondence](docs/PAPER_PROTOCOL.md) maps the published method and experiments to the public implementation.
 
-## Dataset
+## Datasets
 
+**Manuscript driving-video dataset.** The experiments use 120 captured sequences with 36,000 annotated frames. The train, validation, and test splits contain 84, 12, and 24 source sequences, respectively. Figure 2 uses 18-frame windows from this dataset. See [the dataset split table](docs/DATA.md#manuscript-driving-video-dataset).
+
+**TT100K-derived sequences.** Each selected source image generates a 12-frame sequence with aligned targets. The TT100K pipeline recall experiment uses these sequences. See [generation and inputs](docs/DATA.md#tt100k-derived-12-frame-sequences).
+
+**Public five-frame collection.**
 The [KGTSR Synthetic Motion Sequences](datasets/kgtsr_motion/README.md) subset provides 324 five-frame sequences with 1,620 blurred images, derived from 27 unique author-provided photographs. Original stills and clear reference targets are excluded. Download archives, sequence manifests and verification instructions are available in the dataset directory and [dataset release](https://github.com/shenzexin/KG-TSRDeblur/releases/tag/dataset-v1.0.0).
 
 ## Install
