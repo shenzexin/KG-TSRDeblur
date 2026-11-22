@@ -80,7 +80,7 @@ def main():
         threads=torch.get_num_threads(), warmup=a.warmup, iterations=a.iterations,
         peak_allocated_bytes=torch.cuda.max_memory_allocated(x.device) if cuda else None,
         operations=count_operations(model, x, d, r),
-        model_config=asdict(model.config), scope='restorer only; not complete-pipeline FPS', trained_checkpoint=bool(a.checkpoint))
+        model_config=asdict(model.config), scope='per-ROI restoration benchmark', trained_checkpoint=bool(a.checkpoint))
     path = Path(a.output)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(result, indent=2), encoding='utf-8')
