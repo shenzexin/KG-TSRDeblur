@@ -51,6 +51,8 @@ The smoke test generates geometric fixtures and checks classifier training, both
 
 ## Train with real data
 
+Training and benchmarking use the complexity-aligned configuration by default. Use `configs/paper_reference.json` for the original compact reference architecture. See [model complexity and checkpoint compatibility](docs/PAPER_PROTOCOL.md#default-model-configuration).
+
 Obtain data separately and prepare train/validation/test JSONL manifests as described in [DATA.md](docs/DATA.md). All examples below run from the repository root. The classifier and restoration commands reject shared source/group identifiers, hashes, image paths or sequence IDs across training and validation manifests.
 
 ```bash
@@ -58,7 +60,7 @@ Obtain data separately and prepare train/validation/test JSONL manifests as desc
 python -m kg_tsrdeblur.train_classifier --manifest data/train.jsonl --val-manifest data/val.jsonl --classes 20 --epochs 100 --batch-size 64 --device cuda --output runs/classifier
 
 # 2. Reconstruction initialization: 100,000 iterations, lr=2e-4.
-python -m kg_tsrdeblur.train --manifest data/train.jsonl --val-manifest data/val.jsonl --config configs/paper_reference.json --stage init --device cuda --output runs/init
+python -m kg_tsrdeblur.train --manifest data/train.jsonl --val-manifest data/val.jsonl --config configs/parameter_matched_9p1m.json --stage init --device cuda --output runs/init
 
 # 3. Recognition-oriented optimization: 50,000 iterations, lr=1e-4.
 python -m kg_tsrdeblur.train --manifest data/train.jsonl --val-manifest data/val.jsonl --stage joint --init-checkpoint runs/init/best_psnr.pt --classifier runs/classifier/best.pt --device cuda --output runs/joint

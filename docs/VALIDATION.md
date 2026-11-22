@@ -23,7 +23,7 @@ Maintenance regressions cover best-PSNR checkpoint persistence and legacy log re
 5. Evaluated four held-out fixtures and wrote metrics JSON.
 6. Restored an image and confirmed its output dimensions.
 
-Default network forward/backward also passed at 128x128. The parameter count measured by `benchmark.py` was 848,613. Timing values depend on the machine and are produced by the benchmark command.
+The compact architecture in `configs/paper_reference.json` passed forward and backward checks at 128x128. The parameter count measured by `benchmark.py` was 848,613. Timing values depend on the machine and are produced by the benchmark command.
 
 At batch one and 128x128 the counter reports 1,783,719,424 MACs for executed convolution, linear and attention matrix products. FFT and elementwise work are excluded; this is not a full-operation count. The full 1,620-frame published archive was rechecked for hashes, dimensions, temporal metadata, source exclusion and source/group split isolation. Existing release files and their checksums are unchanged.
 

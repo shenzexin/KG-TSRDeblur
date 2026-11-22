@@ -19,10 +19,19 @@ class ModelConfig:
     spatial_only: bool = False
     conv_bottleneck: bool = False
     bottleneck_width: int | None = None
+    motion_hidden_width: int | None = None
+
+    @classmethod
+    def default_architecture(cls):
+        return cls(bottleneck_width=468, motion_hidden_width=18994)
 
     def __post_init__(self):
         self.encoder_depths = tuple(self.encoder_depths)
         self.decoder_depths = tuple(self.decoder_depths)
+        if self.motion_hidden_width is not None and (
+            type(self.motion_hidden_width) is not int or self.motion_hidden_width <= 0
+        ):
+            raise ValueError('Motion hidden width must be a positive integer')
         if self.bottleneck_width is not None and (
             type(self.bottleneck_width) is not int or self.bottleneck_width <= 0
             or self.bottleneck_width % self.heads
@@ -64,9 +73,10 @@ class NAFBlock(nn.Module):
 
 
 class MotionAdapter(nn.Module):
-    def __init__(self, c, d):
+    def __init__(self, c, d, hidden_width=None):
         super().__init__()
-        self.encoder = nn.Sequential(nn.Linear(16, d), nn.GELU(), nn.Linear(d, d))
+        hidden = hidden_width or d
+        self.encoder = nn.Sequential(nn.Linear(16, hidden), nn.GELU(), nn.Linear(hidden, d))
         self.project = nn.Linear(d, c)
         self.norm = LayerNorm2d(c)
         self.gate = nn.Conv2d(2*c, 1, 1)
@@ -163,7 +173,7 @@ class SpatialFrequencyRefinement(nn.Module):
 class KGTSRDeblur(nn.Module):
     def __init__(self, config=None):
         super().__init__()
-        self.config = config or ModelConfig()
+        self.config = config if config is not None else ModelConfig.default_architecture()
         cfg, c = self.config, self.config.width
         if len(cfg.encoder_depths) != 2 or len(cfg.decoder_depths) != 2:
             raise ValueError("Exactly two encoder and decoder stages required")
@@ -177,7 +187,7 @@ class KGTSRDeblur(nn.Module):
             self.encoders.append(nn.Sequential(*(NAFBlock(channels) for _ in range(depth))))
             self.downs.append(nn.Conv2d(channels, out_channels, 2, stride=2))
         c = bottleneck_width
-        self.motion = None if cfg.image_only else MotionAdapter(c, cfg.motion_dim)
+        self.motion = None if cfg.image_only else MotionAdapter(c, cfg.motion_dim, cfg.motion_hidden_width)
         self.bottleneck = nn.Sequential(*(
             NAFBlock(c) if cfg.conv_bottleneck else WindowBlock(c, cfg.heads, cfg.window, (i%2)*(cfg.window//2))
             for i in range(cfg.transformer_blocks)))
