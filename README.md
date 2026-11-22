@@ -12,7 +12,7 @@ Architecture, training and tracking settings are configurable. See [IMPLEMENTATI
 - Size-normalized state/covariance descriptors and reliability scores, equations (1)--(6).
 - NAF-style encoder/decoder, four alternating regular/shifted window attention blocks, reliability-bounded motion adapter and spatial/frequency refinement, equations (7)--(9).
 - MobileNetV3-Small sharp-ROI pretraining, reconstruction initialization and frozen-classifier recognition supervision, equations (10)--(11).
-- Paired ROI evaluation, class-correct pipeline precision/recall, image/video inference, TT100K conversion, causal sequence caching, synthetic software fixtures and tests.
+- Paired ROI evaluation, class-correct pipeline precision/recall, image/video inference, TT100K conversion, causal sequence caching, software fixtures and regression tests.
 - Optional Ultralytics YOLOv8n training and inference integration. The detector requires traffic-sign training data and weights.
 
 [Manuscript experiment correspondence](docs/PAPER_PROTOCOL.md) maps the published method and experiments to the public implementation.
@@ -42,7 +42,7 @@ For CUDA, use the matching wheel command from [PyTorch](https://pytorch.org/get-
 python tools/smoke_test.py --output runs/smoke
 ```
 
-This generates geometric toy images, trains a two-class classifier for one epoch, runs two restoration initialization steps and two recognition-supervised steps, evaluates, restores one image and checks the outputs. These are **software tests on artificial shapes**, not traffic-sign research experiments. The resulting toy checkpoints are not pretrained research models.
+The smoke test generates geometric fixtures and checks classifier training, both restoration stages, checkpoint loading, evaluation, and image inference. Its checkpoints are scoped to the smoke test.
 
 ## Train with real data
 
