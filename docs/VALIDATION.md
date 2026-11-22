@@ -16,17 +16,17 @@ Maintenance regressions cover best-PSNR checkpoint persistence and legacy log re
 
 `python tools/smoke_test.py --output runs/smoke` completed successfully:
 
-1. Generated train/validation/test toy images (8/4/4 geometric shapes).
+1. Generated train/validation/test fixtures (8/4/4 geometric shapes).
 2. Trained a two-class MobileNetV3-Small for one epoch.
 3. Ran two restoration initialization steps and saved checkpoints.
 4. Loaded initialization and frozen classifier checkpoints, ran two recognition-supervised steps, saved checkpoints.
-5. Evaluated four held-out toy images and wrote metrics JSON.
+5. Evaluated four held-out fixtures and wrote metrics JSON.
 6. Restored an image and confirmed its output dimensions.
 
 Default network forward/backward also passed at 128x128. The parameter count measured by `benchmark.py` was 848,613. Timing values depend on the machine and are produced by the benchmark command.
 
 At batch one and 128x128 the counter reports 1,783,719,424 MACs for executed convolution, linear and attention matrix products. FFT and elementwise work are excluded; this is not a full-operation count. The full 1,620-frame published archive was rechecked for hashes, dimensions, temporal metadata, source exclusion and source/group split isolation. Existing release files and their checksums are unchanged.
 
-Toy fixtures are generated solely to test software execution. The optional external YOLO/video integration and dataset converters can be run with user-supplied data and checkpoints using the documented commands.
+The geometric fixtures exercise the software paths listed above. The optional external YOLO/video integration and dataset converters can be run with user-supplied data and checkpoints using the documented commands.
 
-The detector optimizer adjustment follows the [Ultralytics trainer extension API](https://docs.ultralytics.com/guides/custom-trainer/) and [optimizer construction interface](https://docs.ultralytics.com/reference/engine/trainer/). Its Adam parameter update is unit tested. Training a traffic-sign detector and timing the complete video pipeline require user-supplied annotated data and trained checkpoints; those experiments were not run.
+The detector optimizer adjustment follows the [Ultralytics trainer extension API](https://docs.ultralytics.com/guides/custom-trainer/) and [optimizer construction interface](https://docs.ultralytics.com/reference/engine/trainer/). Its Adam parameter update is unit tested. This validation record covers the CPU fixture workflow and the detector optimizer unit test. Traffic-sign training and full-pipeline benchmarking use annotated data and trained checkpoints.
