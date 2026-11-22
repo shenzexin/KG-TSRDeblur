@@ -15,9 +15,9 @@ The public implementation follows the manuscript's causal restoration method. It
 
 - Manuscript driving-video experiments use 120 annotated captured sequences and 36,000 frames. Figure 2 uses 18-frame windows from that dataset.
 - The public release consists of 324 five-frame synthetic sequences (1,620 blurred frames) based on 27 source photographs. It lacks sharp targets, class labels and tracking boxes.
-- The manuscript also uses 12-frame TT100K-derived sequences created with continuous translation and scaling and exposure integration. The exposure midpoint supplies the sharp target and transformed annotation. The current TT100K converter creates independent image pairs. The sequence-cache command accepts externally prepared paired sequences and detector observations. Reproducing the reported experiment requires the original synthesis settings, split and 20-class mapping.
+- The manuscript also uses 12-frame TT100K-derived sequences created with continuous translation and scaling and exposure integration. The exposure midpoint supplies the sharp target and transformed annotation. The TT100K converter prepares paired single-image ROIs. The sequence-cache command accepts externally prepared paired sequences and detector observations. Reproducing the reported experiment requires the original synthesis settings, split and 20-class mapping.
 - The public reference restorer has 848,613 parameters and about 1.784 G counted MACs at batch size one and 128 x 128 input. The manuscript reports 9.1 M and 9.4 G for its experiment. Its original architecture configuration and checkpoint are required to reproduce that run. The reference MAC counter excludes FFT, normalization and elementwise operations.
-- The manuscript's NAFNet baseline is a separate model. The public image_only switch ablates motion conditioning within KG-TSRDeblur. It does not load the manuscript's NAFNet checkpoint.
+- The manuscript's NAFNet baseline is a separate model. The public image_only switch ablates motion conditioning within KG-TSRDeblur. Evaluate NAFNet with its own configuration and checkpoint.
 
 ## Figure 2(c) observation-gap scoring
 
@@ -25,7 +25,7 @@ Withhold detector updates after confirmation for one, three or five frames and r
 
     python -m kg_tsrdeblur.evaluate_gaps --ground-truth data/withheld.jsonl --nafnet runs/nafnet.jsonl --fixed runs/fixed.jsonl --full runs/full.jsonl --output runs/gap_metrics.json
 
-The evaluator maximizes valid one-to-one match count at IoU >= 0.5, then maximizes total IoU. Each ground-truth instance without a valid match counts as incorrect. It reports ground-truth, matched and correctly classified counts for each method and gap. The evaluator consumes experiment predictions. It does not simulate detection gaps or supply the paper's scores.
+The evaluator maximizes valid one-to-one match count at IoU >= 0.5, then maximizes total IoU. Each ground-truth instance without a valid match counts as incorrect. It reports ground-truth, matched and correctly classified counts for each method and gap. Score exported predictions after the inference runs. Include an explicit row with an empty candidates list for frames with no valid prediction. The evaluator rejects missing log rows so an incomplete export cannot be interpreted as a missed detection.
 
 ## Reporting
 
