@@ -1,6 +1,6 @@
 # Software validation record
 
-Validation date: 2026-10-23.
+Compact reference validation: 2026-10-23. For the default architecture, see [model complexity](PAPER_PROTOCOL.md#default-model-configuration).
 
 Environment: Windows, Python 3.12, PyTorch 2.7.1+cpu, torchvision 0.22.1+cpu, NumPy 2.2.6, SciPy 1.16.3, pytest 8.4.2. CPU threads were limited to two for small-image checks.
 
@@ -25,7 +25,7 @@ Maintenance regressions cover best-PSNR checkpoint persistence and legacy log re
 
 The compact architecture in `configs/paper_reference.json` passed forward and backward checks at 128x128. The parameter count measured by `benchmark.py` was 848,613. Timing values depend on the machine and are produced by the benchmark command.
 
-At batch one and 128x128 the counter reports 1,783,719,424 MACs for executed convolution, linear and attention matrix products. FFT and elementwise work are excluded; this is not a full-operation count. The full 1,620-frame published archive was rechecked for hashes, dimensions, temporal metadata, source exclusion and source/group split isolation. Existing release files and their checksums are unchanged.
+At batch one and 128x128 the counter reports 1,783,719,424 MACs for executed convolution, linear and attention matrix products. The count covers convolution, linear and attention matrix products. The full 1,620-frame published archive was rechecked for hashes, dimensions, temporal metadata, source exclusion and source/group split isolation. Existing release files and their checksums are unchanged.
 
 The geometric fixtures exercise the software paths listed above. The optional external YOLO/video integration and dataset converters can be run with user-supplied data and checkpoints using the documented commands.
 
