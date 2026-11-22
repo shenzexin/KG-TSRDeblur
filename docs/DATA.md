@@ -73,3 +73,16 @@ python -m kg_tsrdeblur.prepare_tt100k_sequences --root TT100K --annotations anno
 The settings JSON supplies numeric `vx` and `vy` in pixels per frame, `log_zoom_per_frame`, `exposure_frames` in (0, 1], and integer `exposure_samples` (at least 2). The split JSON maps `train`, `val`, and `test` to disjoint source-ID lists. Each sequence directory contains 12 blurred/sharp image pairs and `frames.jsonl`. Sharp targets and boxes use the exposure midpoint. The `severity` field stores the mean four-corner path length divided by the midpoint box's shorter side. The generator uses a constant translation rate, exponential scale interpolation, black fill, and exposure integration in linear RGB. It records the supplied settings in `generation.json`.
 
 Run the detector on the blurred frames and add its detections to the manifest before calling the causal sequence-cache command. Report the generation settings and source IDs alongside quantitative results.
+
+## Manuscript driving-video dataset
+
+The self-constructed driving-video dataset contains 120 captured sequences with 36,000 annotated frames. Capture resolution is 1920 x 1080 at 30 FPS. The annotations include sign boxes, category labels, and track IDs. Splits are assigned by source sequence.
+
+| Split | Captured sequences | Annotated frames |
+| --- | ---: | ---: |
+| Train | 84 | 25,200 |
+| Validation | 12 | 3,600 |
+| Test | 24 | 7,200 |
+| Total | 120 | 36,000 |
+
+Figure 2 uses 18-frame windows from the captured sequences. The [public five-frame collection](../datasets/kgtsr_motion/README.md) is a separate release with 324 sequences and 1,620 blurred frames derived from 27 photographs. The captured dataset counts above refer to the manuscript experiments.
