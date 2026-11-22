@@ -1,4 +1,4 @@
-"""Sections 2.1--2.2, equations (6)--(9). All unresolved choices: docs/IMPLEMENTATION.md."""
+"""Sections 2.1--2.2, equations (6)--(9). Architecture and configuration: docs/IMPLEMENTATION.md."""
 from dataclasses import dataclass
 import torch
 from torch import nn
