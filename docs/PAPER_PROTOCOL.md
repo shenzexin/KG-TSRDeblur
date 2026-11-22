@@ -30,3 +30,9 @@ The evaluator maximizes valid one-to-one match count at IoU >= 0.5, then maximiz
 ## Reporting
 
 For Tables 1-3, calculate each metric independently on both datasets for each of seeds 42, 43 and 44. Average the dataset scores with equal weight for each seed, then average the three seed-level scores. Table 1 uses the sample standard deviation across those three seed-level scores. Table 3 uses the 12-frame synthetic sequences for TT100K pipeline recall. Count model parameters and MACs for each evaluated configuration independently of the dataset aggregation. For Table 4, normalize exposure-time mean box-corner path length by the midpoint box's shorter side and freeze the validation-set 33rd and 67th percentile thresholds for testing. Compute accuracy on each dataset separately before averaging and keep the same ROIs for the full model and its zero-reliability control.
+
+## Parameter-aligned configuration
+
+`configs/parameter_matched_9p1m.json` uses a 496-channel Transformer bottleneck and keeps the reference model's base width of 32, two downsampling stages, four attention blocks, four heads, 8 x 8 windows, and 32-dimensional motion embedding. Its layer shapes give 9,134,501 parameters and 10,427,503,616 counted MACs for one 128 x 128 ROI under the repository's convolution, linear and attention counting convention. These are analytical counts for the new configuration. The 9.1 M rounded parameter count aligns with the manuscript; the approximately 10.43 G counted MACs differ from the manuscript's 9.4 G.
+
+Run `python -m kg_tsrdeblur.benchmark --config configs/parameter_matched_9p1m.json` to profile the configuration. For training, pass the same config to the initialization stage and use the resulting checkpoint for the joint stage. Reference checkpoint tensor shapes are compatible with the default reference configuration. The wider configuration uses its own weights.
