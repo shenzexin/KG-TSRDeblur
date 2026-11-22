@@ -61,3 +61,15 @@ python -m kg_tsrdeblur.train_detector --data data/signs.yaml --epochs 100 --batc
 ```
 
 Evaluate one sequence per invocation, then aggregate TP/prediction/GT counts across sequences before computing precision/recall. Predictions without a correct class-and-IoU match count as false positives; GT signs in frames with no output count as misses. Macro-F1 for paired ROI evaluation averages over all configured classes (undefined classes contribute zero). Include the metric conventions when comparing with other implementations.
+
+## TT100K-derived 12-frame sequences
+
+Run the following command with the published TT100K image root, the official annotation JSON, and the source split and class lists used by the experiment.
+
+```sh
+python -m kg_tsrdeblur.prepare_tt100k_sequences --root TT100K --annotations annotations.json --splits source_splits.json --classes classes.json --settings generation_settings.json --output sequences
+```
+
+The settings JSON supplies numeric `vx` and `vy` in pixels per frame, `log_zoom_per_frame`, `exposure_frames` in (0, 1], and integer `exposure_samples` (at least 2). The split JSON maps `train`, `val`, and `test` to disjoint source-ID lists. Each sequence directory contains 12 blurred/sharp image pairs and `frames.jsonl`. Sharp targets and boxes use the exposure midpoint. The `severity` field stores the mean four-corner path length divided by the midpoint box's shorter side. The generator uses a constant translation rate, exponential scale interpolation, black fill, and exposure integration in linear RGB. It records the supplied settings in `generation.json`.
+
+Run the detector on the blurred frames and add its detections to the manifest before calling the causal sequence-cache command. Report the generation settings and source IDs alongside quantitative results.
