@@ -73,3 +73,5 @@ Neural blocks and tracking here are newly written. PyTorch/torchvision and SciPy
 - Video inference accepts `--timing-report runs/pipeline_timing.json --timing-warmup 10`. The report times detector inference, tracking, ROI preparation, restoration, classification and compositing, with device synchronization. It excludes video decoding/encoding and log writes. It requires actual trained checkpoints and is distinct from the restorer-only benchmark.
 
 The default full model still has 848,613 parameters. No architectural evidence supplied with the manuscript determines a unique 9.1-million-parameter reconstruction. Changing widths merely to match that count would not establish equivalent experiments. The released sequences have no aligned sharp targets or traffic-sign annotations, so they support sequence loading and qualitative inspection, not the manuscript's quantitative restoration/recognition results.
+
+See [Manuscript experiment correspondence](PAPER_PROTOCOL.md) for dataset and model provenance, aggregation and Figure 2(c) evaluation.
